@@ -81,8 +81,14 @@ public class App {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println("Shipment created successfully: " + createShipmentResponse.shipment().get().objectId());
   
         List<Rate> rates = createShipmentResponse.shipment().get().rates();
+
+        for (Rate rate : rates) {
+            System.out.println(rate.objectId() + " " + rate.provider() + " " + rate.servicelevel().name() + " " + rate.estimatedDays() + " " + rate.amountLocal() + " " + rate.currencyLocal());
+        }
+
         // Select the first available rate for purchasing
         Rate lowestRate = null;
         if (!rates.isEmpty()) {
@@ -90,6 +96,7 @@ public class App {
                 .min((rate1, rate2) -> Double.compare(Double.parseDouble(rate1.amount()), Double.parseDouble(rate2.amount())))
                 .orElseThrow(() -> new IllegalStateException("No rates available"));
         }
+        
         TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
             .rate(lowestRate.objectId())
             .labelFileType(LabelFileTypeEnum.PDF)
@@ -101,6 +108,8 @@ public class App {
         catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println("Transaction created successfully: " + createTransactionResponse.transaction().get().objectId());
+
         Transaction transaction = null;
         while (createTransactionResponse.transaction().get().status().get() != TransactionStatusEnum.SUCCESS) {
             try {
